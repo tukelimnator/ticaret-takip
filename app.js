@@ -539,7 +539,7 @@ form.addEventListener('submit', e => {
     const savedDate = fieldDate.value;
     resetFormFields();
     fieldDate.value = savedDate;
-    fieldProduct?.focus?.();
+    productRowsContainer.querySelector('.prod-name')?.focus();
   }
 
   saveToStorage();
