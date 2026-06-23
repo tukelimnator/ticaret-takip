@@ -422,7 +422,12 @@
         <button class="modal-close" id="cards-close-btn" aria-label="Kapat">&times;</button>
       </div>
       <div class="modal-body">
-        <form id="add-card-form" class="add-card-form" style="flex-direction:column;gap:.5rem;">
+        <button type="button" class="btn btn-outline" id="toggle-add-card-btn" style="width:100%;margin-bottom:1rem;display:flex;justify-content:center;gap:.5rem;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          Yeni Kart Ekle
+        </button>
+        
+        <form id="add-card-form" class="add-card-form" style="flex-direction:column;gap:.5rem;display:none;background:var(--bg-body);padding:1rem;border-radius:var(--radius-md);margin-bottom:1rem;">
           <div class="form-group" style="margin-bottom:0;">
             <input type="text" id="new-card-name" class="form-input" placeholder="Kart Adı (Örn: Garanti Bonus)" required />
           </div>
@@ -430,7 +435,7 @@
             <input type="number" id="new-card-limit" class="form-input" placeholder="Toplam Limit ($)" required min="1" />
             <input type="number" id="new-card-duedate" class="form-input" placeholder="Hesap Kesim (1-31)" min="1" max="31" required />
           </div>
-          <button type="submit" class="btn btn-primary" style="width:100%;">Kart Ekle</button>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Kartı Kaydet</button>
         </form>
         
         <div id="cards-list" class="cards-list">
