@@ -554,3 +554,80 @@ details[open] .summary-chevron{transform:rotate(180deg);}
   .chart-header-right{width:100%;justify-content:flex-end;}
   .product-cols-header,.col-net-field{display:none;}
 }
+
+/* ---- 22. Kredi Kartları ---- */
+.manage-cards-btn {
+  display:flex;align-items:center;gap:.4rem;
+  background:var(--blue-50);color:var(--blue-700);
+  border:1px solid var(--blue-200);border-radius:var(--radius-md);
+  padding:.4rem .8rem;font-size:.8rem;font-weight:600;
+  cursor:pointer;transition:all .2s;
+}
+[data-theme="dark"] .manage-cards-btn {
+  background:rgba(29,78,216,.15);color:var(--blue-300);border-color:rgba(29,78,216,.3);
+}
+.manage-cards-btn:hover { background:var(--blue-100); transform:translateY(-1px); }
+
+.input-wrapper.with-select {
+  display:grid; grid-template-columns: 1fr 1fr; gap:0;
+  border:1px solid var(--border-color); border-radius:var(--radius-md);
+  overflow:hidden;
+}
+.input-wrapper.with-select .input-prefix { position:absolute; left:.7rem; z-index:2; }
+.input-wrapper.with-select input { 
+  border:none; border-radius:0; border-right:1px solid var(--border-color); 
+}
+.card-select {
+  border:none; background:var(--bg-input); color:var(--text-primary);
+  padding:.5rem; font-size:.8rem; outline:none; cursor:pointer;
+  font-family:inherit; font-weight:500;
+}
+.card-select:focus { background:var(--bg-card); }
+
+.modal-overlay {
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.5); backdrop-filter:blur(3px);
+  display:none;align-items:center;justify-content:center;
+  z-index:999; opacity:0; transition:opacity .2s;
+}
+.modal-overlay.open { display:flex; opacity:1; }
+.modal-content {
+  background:var(--bg-card); width:90%; max-width:400px;
+  border-radius:var(--radius-lg); padding:1.5rem;
+  box-shadow:0 10px 25px -5px rgba(0,0,0,.2);
+  transform:translateY(20px); transition:transform .2s;
+  border:1px solid var(--border-color);
+}
+.modal-overlay.open .modal-content { transform:translateY(0); }
+.modal-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem; }
+.modal-header h3 { font-size:1.1rem;font-weight:700;color:var(--text-primary); }
+.modal-close { background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-muted); }
+
+.add-card-form { display:flex;gap:.5rem;margin-bottom:1.5rem; }
+.add-card-form .form-group { margin-bottom:0; flex:1; }
+
+.cards-list { display:flex;flex-direction:column;gap:.8rem; max-height:60vh; overflow-y:auto; }
+.card-item {
+  border:1px solid var(--border-color); border-radius:var(--radius-md);
+  padding:.8rem; background:var(--bg-card-alt);
+}
+.card-item-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem; }
+.card-name { font-weight:700;font-size:.9rem;color:var(--text-primary); }
+.card-limits { font-size:.75rem; color:var(--text-secondary);font-variant-numeric:tabular-nums; }
+
+.card-progress-wrap {
+  height:8px;background:var(--border-color);border-radius:var(--radius-pill);overflow:hidden;
+  margin-bottom:.4rem;
+}
+.card-progress { height:100%; border-radius:var(--radius-pill); transition:width .3s; }
+.card-progress.safe { background:linear-gradient(to right,var(--green-500),var(--green-400)); }
+.card-progress.warn { background:linear-gradient(to right,#F59E0B,#FBBF24); }
+.card-progress.danger { background:linear-gradient(to right,var(--red-500),var(--red-400)); }
+
+.card-actions { display:flex;justify-content:space-between;align-items:center;margin-top:.5rem; }
+.card-pay-btn {
+  background:none;border:1px solid var(--border-color);border-radius:var(--radius-sm);
+  padding:.2rem .5rem;font-size:.7rem;font-weight:600;cursor:pointer;color:var(--text-primary);
+}
+.card-pay-btn:hover { background:var(--bg-tag); }
+.card-delete-btn { background:none;border:none;color:var(--red-500);cursor:pointer;font-size:.8rem;font-weight:600; }

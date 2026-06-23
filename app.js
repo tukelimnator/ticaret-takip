@@ -54,7 +54,7 @@ let chartAnimProg = 0;
 let chartAnimReq  = null;
 
 // Form product rows state
-let formProducts  = [];    // [{ rowId, name, qty, purchase, sale }]
+let formProducts  = [];    // [{ rowId, name, qty, purchase, sale, cardId }]
 let nextRowId     = 1;
 
 // ============================================================
@@ -92,6 +92,13 @@ const chartTooltip  = $('chart-tooltip');
 const chartEmpty    = $('chart-empty');
 const btnDaily      = $('btn-daily');
 const btnCumulative = $('btn-cumulative');
+const manageCardsBtn = $('manage-cards-btn');
+const cardsModal     = $('cards-modal');
+const cardsCloseBtn  = $('cards-close-btn');
+const addCardForm    = $('add-card-form');
+const cardsListEl    = $('cards-list');
+const flightCardSel  = $('flight-card');
+const hotelCardSel   = $('hotel-card');
 const storageInfo   = $('storage-info');
 const productHistory = $('product-history');
 const addProductBtn = $('add-product-row-btn');
@@ -392,7 +399,7 @@ function addFormProductRow(data = {}) {
     return;
   }
   const rowId = nextRowId++;
-  formProducts.push({ rowId, name: data.name||'', qty: data.qty||1, purchase: data.purchase||0, sale: data.sale||0 });
+  formProducts.push({ rowId, name: data.name||'', qty: data.qty||1, purchase: data.purchase||0, sale: data.sale||0, cardId: data.cardId||null });
   renderFormRows();
   // Focus the new row's name input
   setTimeout(() => {
@@ -504,6 +511,8 @@ form.addEventListener('submit', e => {
   const flight = num(fieldFlight.value);
   const hotel  = num(fieldHotel.value);
   const notes  = fieldNotes.value.trim();
+  const flightCard = parseInt(flightCardSel.value, 10) || null;
+  const hotelCard  = parseInt(hotelCardSel.value, 10) || null;
 
   const products = formProducts.map((r, i) => ({
     id: i + 1,
@@ -511,6 +520,7 @@ form.addEventListener('submit', e => {
     qty:  r.qty,
     purchase: r.purchase,
     sale: r.sale,
+    cardId: r.cardId,
   }));
 
   const { grossNet, net } = calcTrip(products, flight, hotel);
@@ -518,7 +528,7 @@ form.addEventListener('submit', e => {
   if (editingId !== null) {
     const idx = trips.findIndex(t => t.id === editingId);
     if (idx !== -1) {
-      trips[idx] = { ...trips[idx], date: fieldDate.value, flight, hotel, notes, products, grossNet, net };
+      trips[idx] = { ...trips[idx], date: fieldDate.value, flight, hotel, flightCard, hotelCard, notes, products, grossNet, net };
       showToast(`✏ Sefer güncellendi — Net: ${sign(net)+fmt(net)}`, 'info');
     }
     exitEditMode();
@@ -526,7 +536,7 @@ form.addEventListener('submit', e => {
     const trip = {
       id: nextTripId++,
       date: fieldDate.value,
-      flight, hotel, notes,
+      flight, hotel, flightCard, hotelCard, notes,
       color: nextColor(),
       products,
       grossNet, net,
@@ -558,6 +568,8 @@ function enterEditMode(id) {
   fieldFlight.value = trip.flight;
   fieldHotel.value  = trip.hotel;
   fieldNotes.value  = trip.notes || '';
+  flightCardSel.value = trip.flightCard || '';
+  hotelCardSel.value  = trip.hotelCard || '';
   notesCount.textContent = `${fieldNotes.value.length}/500`;
   if (trip.notes) $('notes-details').open = true;
 
@@ -568,6 +580,7 @@ function enterEditMode(id) {
     qty:      p.qty,
     purchase: p.purchase,
     sale:     p.sale,
+    cardId:   p.cardId,
   }));
   renderFormRows();
   updateLivePreview();
@@ -1293,3 +1306,109 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+
+// ============================================================
+// Credit Cards Logic
+// ============================================================
+
+function calculateCardsUsage() {
+  cards.forEach(c => c.used = 0);
+  trips.forEach(t => {
+    if (t.flightCard) { const c = cards.find(x => x.id === t.flightCard); if (c) c.used += t.flight; }
+    if (t.hotelCard) { const c = cards.find(x => x.id === t.hotelCard); if (c) c.used += t.hotel; }
+    t.products.forEach(p => {
+      if (p.cardId) { const c = cards.find(x => x.id === p.cardId); if (c) c.used += (p.qty * p.purchase); }
+    });
+  });
+}
+
+function updateCardSelects() {
+  const html = '<option value="">Kart Seçilmedi</option>' + 
+               cards.map(c => `<option value="${c.id}">${escape(c.name)}</option>`).join('');
+  
+  const savedF = flightCardSel.value;
+  const savedH = hotelCardSel.value;
+  
+  flightCardSel.innerHTML = html;
+  hotelCardSel.innerHTML = html;
+  
+  flightCardSel.value = savedF;
+  hotelCardSel.value = savedH;
+  
+  document.querySelectorAll('.prod-card').forEach(select => {
+    const saved = select.value;
+    select.innerHTML = html;
+    select.value = saved;
+  });
+}
+
+function renderCardsList() {
+  calculateCardsUsage();
+  cardsListEl.innerHTML = cards.map(c => {
+    const limit = c.limit || 1;
+    const used = c.used || 0;
+    let pct = (used / limit) * 100;
+    if (pct > 100) pct = 100;
+    
+    const cls = pct > 90 ? 'danger' : pct > 75 ? 'warn' : 'safe';
+    
+    return `
+      <div class="card-item">
+        <div class="card-item-header">
+          <span class="card-name">${escape(c.name)}</span>
+          <span class="card-limits">$${Math.round(used).toLocaleString('en-US')} / $${Math.round(limit).toLocaleString('en-US')}</span>
+        </div>
+        <div class="card-progress-wrap">
+          <div class="card-progress ${cls}" style="width:${pct}%"></div>
+        </div>
+        <div class="card-actions">
+          <button class="card-delete-btn" onclick="deleteCard(${c.id})">Sil</button>
+        </div>
+      </div>
+    `;
+  }).join('') || '<div style="font-size:0.8rem;color:var(--text-muted);text-align:center;padding:1rem;">Henüz kart eklenmedi.</div>';
+}
+
+function deleteCard(id) {
+  if (!confirm('Bu kartı silmek istediğinize emin misiniz?')) return;
+  cards = cards.filter(c => c.id !== id);
+  // Remove references in trips
+  trips.forEach(t => {
+    if (t.flightCard === id) t.flightCard = null;
+    if (t.hotelCard === id) t.hotelCard = null;
+    t.products.forEach(p => { if (p.cardId === id) p.cardId = null; });
+  });
+  saveToStorage();
+  updateCardSelects();
+  renderCardsList();
+  renderAll(); // Rerender table to clear badges
+}
+
+addCardForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const name = $('new-card-name').value.trim();
+  const limit = parseInt($('new-card-limit').value, 10);
+  if (!name || limit <= 0) return;
+  
+  cards.push({ id: nextCardId++, name, limit, used: 0 });
+  saveToStorage();
+  $('new-card-name').value = '';
+  $('new-card-limit').value = '';
+  
+  updateCardSelects();
+  renderCardsList();
+});
+
+manageCardsBtn.addEventListener('click', () => {
+  renderCardsList();
+  cardsModal.classList.add('open');
+});
+cardsCloseBtn.addEventListener('click', () => cardsModal.classList.remove('open'));
+
+// Hook into initial render
+const origRenderAll = renderAll;
+renderAll = function() {
+  origRenderAll();
+  updateCardSelects();
+};
