@@ -1356,7 +1356,10 @@ function renderCardsList() {
     return `
       <div class="card-item">
         <div class="card-item-header">
-          <span class="card-name">${escape(c.name)}</span>
+          <div>
+            <span class="card-name">${escape(c.name)}</span>
+            ${c.dueDate ? `<span style="font-size:0.7rem;color:var(--text-muted);margin-left:8px;">📅 Son Ödeme: Ayın ${c.dueDate}'i</span>` : ''}
+          </div>
           <span class="card-limits">$${Math.round(used).toLocaleString('en-US')} / $${Math.round(limit).toLocaleString('en-US')}</span>
         </div>
         <div class="card-progress-wrap">
@@ -1389,12 +1392,15 @@ addCardForm.addEventListener('submit', e => {
   e.preventDefault();
   const name = $('new-card-name').value.trim();
   const limit = parseInt($('new-card-limit').value, 10);
-  if (!name || limit <= 0) return;
+  const dueDate = parseInt($('new-card-duedate').value, 10);
   
-  cards.push({ id: nextCardId++, name, limit, used: 0 });
+  if (!name || limit <= 0 || isNaN(dueDate)) return;
+  
+  cards.push({ id: nextCardId++, name, limit, dueDate, used: 0 });
   saveToStorage();
   $('new-card-name').value = '';
   $('new-card-limit').value = '';
+  $('new-card-duedate').value = '';
   
   updateCardSelects();
   renderCardsList();
