@@ -92,9 +92,11 @@ const chartTooltip  = $('chart-tooltip');
 const chartEmpty    = $('chart-empty');
 const btnDaily      = $('btn-daily');
 const btnCumulative = $('btn-cumulative');
-const manageCardsBtn = $('manage-cards-btn');
-const cardsModal     = $('cards-modal');
-const cardsCloseBtn  = $('cards-close-btn');
+// const manageCardsBtn = $('manage-cards-btn');
+// const cardsModal     = $('cards-modal');
+// const cardsCloseBtn  = $('cards-close-btn');
+const tabBtns = document.querySelectorAll('.tab-btn');
+const tabPanes = document.querySelectorAll('.tab-pane');
 const addCardForm    = $('add-card-form');
 const toggleAddCardBtn = $('toggle-add-card-btn');
 const cardsListEl    = $('cards-list');
@@ -326,6 +328,11 @@ function createFormProductRow(rowId, data = {}) {
         />
       </div>
     </div>
+    <div class="col-card-field">
+      <select class="form-input prod-card" aria-label="Ürün ${rowIndex} için kart" onchange="syncRowState(${rowId}, this.closest('.product-form-row'))">
+        <option value="">Kart...</option>
+      </select>
+    </div>
     <div class="col-sale-field">
       <div class="input-wrapper">
         <span class="input-prefix" aria-hidden="true">$</span>
@@ -375,6 +382,8 @@ function syncRowState(rowId, div) {
   rowState.qty      = qnum(div.querySelector('.prod-qty').value);
   rowState.purchase = num(div.querySelector('.prod-purchase').value);
   rowState.sale     = num(div.querySelector('.prod-sale').value);
+  const cardSel = div.querySelector('.prod-card');
+  if (cardSel) rowState.cardId = parseInt(cardSel.value, 10) || null;
 
   // Update inline net display
   const pNet    = calcProductNet(rowState);
@@ -574,6 +583,7 @@ function enterEditMode(id) {
   notesCount.textContent = `${fieldNotes.value.length}/500`;
   if (trip.notes) $('notes-details').open = true;
 
+  updateCardSelects(); // Ensure options exist before setting values
   // Populate product rows
   formProducts = trip.products.map(p => ({
     rowId:    nextRowId++,
@@ -583,6 +593,13 @@ function enterEditMode(id) {
     sale:     p.sale,
     cardId:   p.cardId,
   }));
+  setTimeout(() => {
+    document.querySelectorAll('.product-form-row').forEach((div, i) => {
+      const p = trip.products[i];
+      const sel = div.querySelector('.prod-card');
+      if (sel && p.cardId) sel.value = p.cardId;
+    });
+  }, 10);
   renderFormRows();
   updateLivePreview();
 
@@ -616,6 +633,7 @@ function resetFormFields(keepDate = false) {
   formProducts = [];
   nextRowId    = 1;
   addFormProductRow();
+  updateCardSelects();
   updateLivePreview();
 }
 
@@ -1013,7 +1031,7 @@ function renderAll() {
   const { dates } = getChartData();
   if (dates.length >= 1) {
     chartCard.style.display = '';
-    const show2 = dates.length >= 2;
+    const show2 = dates.length >= 1; 
     chartEmpty.style.display  = show2 ? 'none' : '';
     chartCanvas.style.display = show2 ? '' : 'none';
     if (show2) {
@@ -1058,7 +1076,7 @@ function animateChart() {
 function drawChart() {
   if (!chartCanvas || !trips.length) return;
   const { dates, values, cumulative } = getChartData();
-  if (dates.length < 2) return;
+  if (dates.length < 1) return;
 
   const dpr  = window.devicePixelRatio || 1;
   const rect = chartCanvas.getBoundingClientRect();
@@ -1112,9 +1130,11 @@ function drawChart() {
   dates.forEach((date, i) => {
     const v    = values[i];
     const animV = v * prog;
-    const x    = PAD.left + step*i + step/2 - barW/2;
+    
     const barH = Math.abs(animV/maxAbs)*(cH/2-4);
     const barY = v>=0 ? toY(animV) : zeroY;
+    let x = PAD.left + step*i + step/2 - barW/2;
+    if (n === 1) x = PAD.left + cW/2 - barW/2;
     const isHov = i===chartHoverIdx;
     const alpha = isHov ? Math.min(1,barAlpha+.2) : barAlpha;
 
@@ -1455,11 +1475,17 @@ addCardForm.addEventListener('submit', e => {
   toggleAddCardBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Yeni Kart Ekle`;
 });
 
-manageCardsBtn.addEventListener('click', () => {
-  renderCardsList();
-  cardsModal.classList.add('open');
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabBtns.forEach(b => b.classList.remove('active'));
+    tabPanes.forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.target).classList.add('active');
+    if (btn.dataset.target === 'tab-cards') {
+      renderCardsList();
+    }
+  });
 });
-cardsCloseBtn.addEventListener('click', () => cardsModal.classList.remove('open'));
 
 toggleAddCardBtn.addEventListener('click', () => {
   const isHidden = addCardForm.style.display === 'none';

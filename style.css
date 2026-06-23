@@ -631,3 +631,51 @@ details[open] .summary-chevron{transform:rotate(180deg);}
 }
 .card-pay-btn:hover { background:var(--bg-tag); }
 .card-delete-btn { background:none;border:none;color:var(--red-500);cursor:pointer;font-size:.8rem;font-weight:600; }
+
+/* ---- 23. TABS ---- */
+.app-tabs-nav {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--bg-card);
+  padding: 0.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+.tab-btn {
+  background: transparent;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.tab-btn:hover {
+  background: var(--bg-body);
+  color: var(--text-primary);
+}
+.tab-btn.active {
+  background: var(--blue-500);
+  color: #fff;
+}
+.tab-pane {
+  display: none;
+  animation: fadeIn 0.3s ease-out;
+}
+.tab-pane.active {
+  display: block;
+}
+.card-body {
+  padding: 1.5rem;
+}
+.cards-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+.col-card-field {
+  flex: 1;
+  min-width: 90px;
+}
