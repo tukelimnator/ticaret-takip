@@ -57,6 +57,10 @@ let chartAnimReq  = null;
 let formProducts  = [];    // [{ rowId, name, qty, purchase, sale, cardId }]
 let nextRowId     = 1;
 
+// Cards state
+let cards         = [];
+let nextCardId    = 1;
+
 // ============================================================
 // DOM refs
 // ============================================================
@@ -200,7 +204,7 @@ function marginClass(m) {
 // ============================================================
 function saveToStorage() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ trips, nextTripId, nextProdId, colorIndex }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ trips, nextTripId, nextProdId, colorIndex, cards, nextCardId }));
     updateStorageInfo();
   } catch(e) { console.warn('LocalStorage write error:', e); }
 }
@@ -249,6 +253,8 @@ function loadFromStorage() {
     nextTripId  = d.nextTripId || trips.length + 1;
     nextProdId  = d.nextProdId || 1;
     colorIndex  = d.colorIndex || 0;
+    cards       = d.cards || [];
+    nextCardId  = d.nextCardId || 1;
     // Ensure computed fields
     trips.forEach(trip => {
       const { grossNet, net } = calcTrip(trip.products, trip.flight, trip.hotel);
@@ -257,7 +263,7 @@ function loadFromStorage() {
     });
   } catch(e) {
     console.warn('Storage load error:', e);
-    trips = []; nextTripId = 1; nextProdId = 1; colorIndex = 0;
+    trips = []; nextTripId = 1; nextProdId = 1; colorIndex = 0; cards = []; nextCardId = 1;
   }
 }
 
